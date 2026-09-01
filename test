@@ -1,1 +1,474 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lewit61 Audio Player</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --track-fill: #333333;
+      --tooltip-text: #ffffff;
+    }
+ 
+    .light-theme {
+      --bg-color: #f0f2f5;
+      --btn-bg: #ffffff;
+      --btn-hover: #e4e6eb;
+      --text-color: #333333;
+      --icon-color: #555555;
+      --track-bg: #d1d5db;
+      --time-color: #666666;
+    }
+ 
+    .dark-theme {
+      --bg-color: #1f2937;
+      --btn-bg: #374151;
+      --btn-hover: #4b5563;
+      --text-color: #f3f4f6;
+      --icon-color: #9ca3af;
+      --track-bg: #4b5563;
+      --time-color: #9ca3af;
+    }
+ 
+    body {
+      background: transparent;
+      font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 10px;
+    }
+ 
+    .audio-player {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--bg-color);
+      color: var(--text-color);
+      padding: 12px 20px;
+      border-radius: 50px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      box-sizing: border-box;
+      max-width: 100%;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+ 
+    .player-btn {
+      background: var(--btn-bg);
+      border: none;
+      min-width: 48px;
+      min-height: 48px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      transition: background 0.2s ease, box-shadow 0.2s ease;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+ 
+    .player-btn:hover {
+      background: var(--btn-hover);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+ 
+    .player-btn:active {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    }
+ 
+    .icon-container {
+      position: relative;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+ 
+    .player-btn .material-icons-round {
+      position: absolute;
+      font-size: 28px;
+      color: var(--text-color);
+      opacity: 0;
+      transform: scale(0.7) rotate(-90deg);
+      transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+ 
+    .player-btn .material-icons-round.active {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+ 
+    .player-btn:hover .material-icons-round.active {
+      transform: scale(1.1);
+    }
+ 
+    .player-btn:active .material-icons-round.active {
+      transform: scale(0.9);
+    }
+ 
+    .time-display {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--time-color);
+      white-space: nowrap;
+      min-width: 36px;
+      text-align: center;
+      user-select: none;
+    }
+ 
+    .seek-container {
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      min-width: 60px;
+      position: relative;
+    }
+ 
+    .seek-bar {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: linear-gradient(to right, var(--track-fill) 0%, var(--track-bg) 0%);
+      outline: none;
+      cursor: pointer;
+      transition: height 0.15s ease;
+    }
+ 
+    .seek-bar:hover {
+      height: 8px;
+    }
+ 
+    .seek-bar::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--track-fill);
+      cursor: pointer;
+      transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+ 
+    .seek-bar::-webkit-slider-thumb:hover {
+      transform: scale(1.35);
+    }
+ 
+    .seek-bar::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--track-fill);
+      cursor: pointer;
+      border: none;
+      transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+ 
+    .seek-bar::-moz-range-thumb:hover {
+      transform: scale(1.35);
+    }
+ 
+    .scrub-tooltip {
+      position: absolute;
+      bottom: 18px;
+      transform: translateX(-50%) scale(0.8);
+      background: var(--track-fill);
+      color: var(--tooltip-text);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 6px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+ 
+    .scrub-tooltip.visible {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+ 
+    .download-btn {
+      background: transparent;
+      border: none;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      flex-shrink: 0;
+      text-decoration: none;
+    }
+ 
+    .download-btn:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+ 
+    .download-btn .material-icons-round {
+      font-size: 22px;
+      color: var(--icon-color);
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+ 
+    .download-btn:hover .material-icons-round {
+      transform: scale(1.15);
+    }
+ 
+    @media (max-width: 250px) {
+      .seek-container, .time-display {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+ 
+  <script>
+    const PLAYER_SETTINGS = {
+      // PASTE YOUR AUDIO URL BETWEEN THE QUOTES BELOW:
+      githubUrl: "PASTE YOUR URL HERE",
+ 
+      // THEME MODE: CHOOSE "light" OR "dark"
+      mode: "dark",
+ 
+      // ACCENT COLOR: CHOOSE "default", "red", "orange", "yellow", "green", "blue", "purple", OR "pink"
+      accent: "default",
+ 
+      // COMPONENT TOGGLES: CHOOSE true OR false
+      showSeekbar: true,
+      showCurrentTime: true,
+      showTotalTime: true,
+      showScrubTooltip: true,
+      showDownloadButton: true
+    };
+  </script>
+ 
+  <div class="audio-player" id="audioPlayerRoot">
+    <audio id="myAudio"></audio>
+ 
+    <button class="player-btn" id="playPauseBtn" onclick="togglePlayPause()" title="Play">
+      <div class="icon-container">
+        <span class="material-icons-round active" id="iconPlay">play_arrow</span>
+        <span class="material-icons-round" id="iconPause">pause</span>
+        <span class="material-icons-round" id="iconReplay">replay</span>
+      </div>
+    </button>
+ 
+    <span class="time-display" id="currentTimeDisplay" style="display: none;">0:00</span>
+ 
+    <div class="seek-container" id="seekContainer">
+      <input type="range" id="seekBar" class="seek-bar" value="0" max="1000" step="1" oninput="onSeekInput()" onmousedown="startScrub()" onmouseup="endScrub()" ontouchstart="startScrub()" ontouchend="endScrub()">
+      <div class="scrub-tooltip" id="scrubTooltip">0:00</div>
+    </div>
+ 
+    <span class="time-display" id="totalTimeDisplay" style="display: none;">0:00</span>
+ 
+    <a href="#" class="download-btn" id="downloadBtn" download title="Download">
+      <span class="material-icons-round">download</span>
+    </a>
+  </div>
+ 
+  <script>
+    if (typeof PLAYER_SETTINGS !== 'undefined') {
+      const audioEl = document.getElementById('myAudio');
+      const downloadEl = document.getElementById('downloadBtn');
+      const playerRoot = document.getElementById('audioPlayerRoot');
+ 
+      audioEl.src = PLAYER_SETTINGS.githubUrl;
+      downloadEl.href = PLAYER_SETTINGS.githubUrl;
+ 
+      if (!PLAYER_SETTINGS.showSeekbar) {
+        document.getElementById('seekContainer').style.display = 'none';
+      }
+      if (PLAYER_SETTINGS.showCurrentTime) {
+        document.getElementById('currentTimeDisplay').style.display = 'block';
+      }
+      if (PLAYER_SETTINGS.showTotalTime) {
+        document.getElementById('totalTimeDisplay').style.display = 'block';
+      }
+      if (!PLAYER_SETTINGS.showDownloadButton) {
+        downloadEl.style.display = 'none';
+      }
+ 
+      let isLight = PLAYER_SETTINGS.mode !== 'dark';
+      playerRoot.classList.add(isLight ? 'light-theme' : 'dark-theme');
+ 
+      const colorPresets = {
+        default: { light: '#333333', dark: '#E2E8F0' },
+        red:     { light: '#FF8080', dark: '#E55353' },
+        orange:  { light: '#FFAC80', dark: '#E58753' },
+        yellow:  { light: '#FFE380', dark: '#E5C453' },
+        green:   { light: '#B6F090', dark: '#85D154' },
+        blue:    { light: '#89D8FF', dark: '#53B3E5' },
+        purple:  { light: '#A889FF', dark: '#C4B5FD' },
+        pink:    { light: '#F89BFF', dark: '#D16AE0' }
+      };
+ 
+      let selectedColor = colorPresets[PLAYER_SETTINGS.accent.toLowerCase()] || colorPresets.default;
+      let activeAccent = isLight ? selectedColor.light : selectedColor.dark;
+      playerRoot.style.setProperty('--track-fill', activeAccent);
+ 
+      if (!isLight && PLAYER_SETTINGS.accent.toLowerCase() === 'default') {
+        playerRoot.style.setProperty('--tooltip-text', '#1f2937');
+      } else {
+        playerRoot.style.setProperty('--tooltip-text', '#ffffff');
+      }
+    }
+ 
+    const audio = document.getElementById('myAudio');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const iconPlay = document.getElementById('iconPlay');
+    const iconPause = document.getElementById('iconPause');
+    const iconReplay = document.getElementById('iconReplay');
+    const seekBar = document.getElementById('seekBar');
+    const currentTimeDisplay = document.getElementById('currentTimeDisplay');
+    const totalTimeDisplay = document.getElementById('totalTimeDisplay');
+    const scrubTooltip = document.getElementById('scrubTooltip');
+ 
+    let isScrubbing = false;
+ 
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return "0:00";
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+ 
+    function setIcon(state) {
+      iconPlay.classList.remove('active');
+      iconPause.classList.remove('active');
+      iconReplay.classList.remove('active');
+ 
+      if (state === 'play') {
+        iconPlay.classList.add('active');
+        playPauseBtn.title = "Play";
+      } else if (state === 'pause') {
+        iconPause.classList.add('active');
+        playPauseBtn.title = "Pause";
+      } else if (state === 'replay') {
+        iconReplay.classList.add('active');
+        playPauseBtn.title = "Replay";
+      }
+    }
+ 
+    audio.addEventListener('loadedmetadata', () => {
+      if (totalTimeDisplay) {
+        totalTimeDisplay.textContent = formatTime(audio.duration);
+      }
+    });
+ 
+    function togglePlayPause() {
+      if (audio.ended) {
+        audio.currentTime = 0;
+        audio.play();
+        setIcon('pause');
+        return;
+      }
+ 
+      if (audio.paused) {
+        audio.play();
+        setIcon('pause');
+      } else {
+        audio.pause();
+        setIcon('play');
+      }
+    }
+ 
+    function updateProgressLoop() {
+      if (!audio.paused && !isScrubbing && !audio.ended) {
+        if (!isNaN(audio.duration) && seekBar) {
+          const progress = (audio.currentTime / audio.duration) * 1000;
+          seekBar.value = progress;
+          const percent = (audio.currentTime / audio.duration) * 100;
+          seekBar.style.background = `linear-gradient(to right, var(--track-fill) ${percent}%, var(--track-bg) ${percent}%)`;
+        }
+        if (currentTimeDisplay) {
+          currentTimeDisplay.textContent = formatTime(audio.currentTime);
+        }
+      }
+      requestAnimationFrame(updateProgressLoop);
+    }
+    requestAnimationFrame(updateProgressLoop);
+ 
+    function startScrub() {
+      isScrubbing = true;
+      if (PLAYER_SETTINGS.showScrubTooltip) {
+        scrubTooltip.classList.add('visible');
+        // Instantly sync tooltip text and time display to exact grabbed position upon initial grab
+        if (!isNaN(audio.duration) && seekBar) {
+          const grabbedTime = (seekBar.value / 1000) * audio.duration;
+          scrubTooltip.textContent = formatTime(grabbedTime);
+          const percent = (seekBar.value / 1000) * 100;
+          scrubTooltip.style.left = `${percent}%`;
+          if (currentTimeDisplay) {
+            currentTimeDisplay.textContent = formatTime(grabbedTime);
+          }
+        }
+      }
+    }
+ 
+    function endScrub() {
+      isScrubbing = false;
+      scrubTooltip.classList.remove('visible');
+    }
+ 
+    function onSeekInput() {
+      if (!isNaN(audio.duration) && seekBar) {
+        const targetTime = (seekBar.value / 1000) * audio.duration;
+        audio.currentTime = targetTime;
+ 
+        const percent = (seekBar.value / 1000) * 100;
+        seekBar.style.background = `linear-gradient(to right, var(--track-fill) ${percent}%, var(--track-bg) ${percent}%)`;
+ 
+        if (currentTimeDisplay) {
+          currentTimeDisplay.textContent = formatTime(targetTime);
+        }
+ 
+        if (PLAYER_SETTINGS.showScrubTooltip) {
+          scrubTooltip.textContent = formatTime(targetTime);
+          scrubTooltip.style.left = `${percent}%`;
+        }
+      }
+    }
+ 
+    audio.addEventListener('ended', () => {
+      setIcon('replay');
+      if (seekBar) {
+        seekBar.value = 1000;
+        seekBar.style.background = `linear-gradient(to right, var(--track-fill) 100%, var(--track-bg) 100%)`;
+      }
+      if (currentTimeDisplay && !isNaN(audio.duration)) {
+        currentTimeDisplay.textContent = formatTime(audio.duration);
+      }
+    });
+ 
+    audio.addEventListener('play', () => {
+      if (!audio.ended) {
+        setIcon('pause');
+      }
+    });
+ 
+    audio.addEventListener('pause', () => {
+      if (!audio.ended) {
+        setIcon('play');
+      }
+    });
+  </script>
+ 
+</body>
+</html>
